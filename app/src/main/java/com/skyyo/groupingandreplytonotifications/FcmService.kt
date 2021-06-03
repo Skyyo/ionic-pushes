@@ -65,6 +65,10 @@ class FcmService : FirebaseMessagingService() {
             notify(notificationId, notification)
             notify(groupId, notificationSummary)
         }
+        // this is how we cancel the notification, or notification summary ( group )
+//        NotificationManagerCompat.from(this).cancel(notificationId)
+        // or
+//        NotificationManagerCompat.from(this).cancel(groupId)
     }
 
 }
