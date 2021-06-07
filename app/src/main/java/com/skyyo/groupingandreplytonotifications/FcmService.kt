@@ -12,6 +12,8 @@ import androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH
 import androidx.core.content.ContextCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import java.time.Instant
+import java.util.*
 
 class FcmService : FirebaseMessagingService() {
 
@@ -50,6 +52,27 @@ class FcmService : FirebaseMessagingService() {
                 groupId
             )
         }
+    }
+
+    private fun showReplyNotification() {
+//        var message1 = NotificationCompat.MessagingStyle.Message(
+//            "text",
+//            Instant.now(),
+//            "sender"
+//        )
+//        var message2 = NotificationCompat.MessagingStyle.Message(
+//            messages[1].getText(),
+//            messages[1].getTime(),
+//            messages[1].getSender()
+//        )
+//        var notification = NotificationCompat.Builder(context, CHANNEL_ID)
+//            .setSmallIcon(R.drawable.new_message)
+//            .setStyle(
+//                NotificationCompat.MessagingStyle(resources.getString(R.string.reply_name))
+//                    .addMessage(message1)
+//                    .addMessage(message2)
+//            )
+//            .build()
     }
 
     private fun showSimpleNotification(

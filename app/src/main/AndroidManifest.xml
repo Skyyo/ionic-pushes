@@ -20,6 +20,8 @@
             </intent-filter>
         </activity>
 
+        <receiver android:name=".DirectReplyReceiver"/>
+
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@android:drawable/ic_delete" />
