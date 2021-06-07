@@ -16,7 +16,7 @@ class DirectReplyReceiver : BroadcastReceiver() {
             //to get ids etc from the notification
             val messageId = intent.getIntExtra("KEY_MESSAGE_ID", 0)
 
-            //here you want to either store the data to your local storage, or execute network request.
+            // here you want to either store the data to your local storage, or execute network request.
             // also keep in mind that ideally, you want to append the user response to that
             // initial message, and continue doing it. This will require some additional logic
             // to store the currently active notification ids, their texts etc.
