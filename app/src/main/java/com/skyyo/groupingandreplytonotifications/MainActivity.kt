@@ -2,10 +2,8 @@ package com.skyyo.groupingandreplytonotifications
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.room.Room
 import com.google.firebase.messaging.FirebaseMessaging
 import com.skyyo.groupingandreplytonotifications.databinding.ActivityMainBinding
-import com.skyyo.persistance.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -16,6 +14,16 @@ class MainActivity : AppCompatActivity() {
 
     //this part is view related, doesn't matter
     private lateinit var binding: ActivityMainBinding
+
+    override fun onStart() {
+        super.onStart()
+        isAppRunning = true
+    }
+
+    override fun onDestroy() {
+        isAppRunning = false
+        super.onDestroy()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +49,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 
 }
 

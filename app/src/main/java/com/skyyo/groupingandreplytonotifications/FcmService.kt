@@ -5,6 +5,8 @@ import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -19,6 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
+var isAppRunning = false
+
 @DelicateCoroutinesApi
 class FcmService : FirebaseMessagingService() {
 
@@ -26,6 +30,7 @@ class FcmService : FirebaseMessagingService() {
     private val channelId = "your_app_name_channel_id" // doesn't matter much, but rename please
     private val channelName = "your_app_name_channel_name" // doesn't matter much, but rename please
     private val activityResultCode = 2313 // doesn't matter much
+
 
     //TODO ensure we don't have DB migration issues
     private val pushNotificationsDao by lazy {
@@ -35,8 +40,9 @@ class FcmService : FirebaseMessagingService() {
     }
 
     override fun onCreate() {
-        val channel = NotificationChannelCompat.Builder(channelId, IMPORTANCE_HIGH)
-            .setName(channelName).build()
+        val channel =
+            NotificationChannelCompat.Builder(channelId, IMPORTANCE_HIGH).setName(channelName)
+                .build()
         NotificationManagerCompat.from(this).createNotificationChannel(channel)
     }
 
@@ -45,20 +51,24 @@ class FcmService : FirebaseMessagingService() {
         // this is rarely called so prioritize accordingly
     }
 
-
     // this will be triggered always, if the payload contains "data" object without "notification" object
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val alertId = remoteMessage.data["id"]?.toInt() ?: return
         val title = remoteMessage.data["title"] ?: return
         val description = remoteMessage.data["description"] ?: return
         showSimpleNotification(alertId, title, description)
-        //if app is running -> dont save, trigger callback
-        saveToDatabase(alertId, title, description)
+
+        //saving to DB only if app is in "killed" state
+        if (!isAppRunning) {
+            val content = PushNotificationContent(alertId, title, description)
+            saveToDatabase(content)
+        }
+
     }
 
-    private fun saveToDatabase(alertId: Int, title: String, description: String) {
+    private fun saveToDatabase(content: PushNotificationContent) {
         GlobalScope.launch(Dispatchers.IO) {
-            val content = PushNotificationContent(alertId, title, description)
             pushNotificationsDao.insertPushNotificationContent(content)
         }
     }
@@ -106,5 +116,4 @@ class FcmService : FirebaseMessagingService() {
         // NotificationManagerCompat.from(this).cancel(notificationId)
 
     }
-
 }
