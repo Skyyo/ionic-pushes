@@ -12,8 +12,6 @@ import androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH
 import androidx.core.content.ContextCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import java.time.Instant
-import java.util.*
 
 class FcmService : FirebaseMessagingService() {
 
@@ -41,6 +39,7 @@ class FcmService : FirebaseMessagingService() {
         val description = remoteMessage.data["description"] ?: return
         val groupName = remoteMessage.data["groupName"] ?: return
         val groupId = remoteMessage.data["groupId"]?.toInt() ?: return
+        val firstGroupNotification = remoteMessage.data["firstGroupNotification"] ?: return
         val notificationType = remoteMessage.data["type"] ?: return
         when (notificationType) {
             "simpleNotification" -> showSimpleNotification(alertId, title, description)
@@ -49,7 +48,8 @@ class FcmService : FirebaseMessagingService() {
                 title,
                 description,
                 groupName,
-                groupId
+                groupId,
+                firstGroupNotification
             )
         }
     }
@@ -103,7 +103,8 @@ class FcmService : FirebaseMessagingService() {
         title: String,
         description: String,
         groupName: String,
-        groupId: Int
+        groupId: Int,
+        firstGroupNotification: String
     ) {
 
         //code that allows us to open activity on notification tap
@@ -152,31 +153,43 @@ class FcmService : FirebaseMessagingService() {
             FLAG_IMMUTABLE or FLAG_UPDATE_CURRENT
         )
 
-        //notification object
-        val notification = NotificationCompat.Builder(this, channelId)
-            .setContentText(description)
-            .setContentTitle(title)
-            .setColor(ContextCompat.getColor(this, android.R.color.holo_blue_bright))
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentIntent(pendingIntentSimpleNotification)
-            .setAutoCancel(true)
-            .setGroup(groupName)
-            .build()
-
-        //notification summary object. This code is what creates the notification summary/grouping ( think of X + summary for each group_id)
-        val notificationSummary = NotificationCompat.Builder(this, channelId)
-            .setStyle(NotificationCompat.InboxStyle())
-            .setColor(ContextCompat.getColor(this, android.R.color.holo_blue_bright))
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentIntent(pendingIntentSummaryNotification)
-            .setGroup(groupName)
-            .setAutoCancel(true)
-            .setGroupSummary(true)
-            .build()
-
-        NotificationManagerCompat.from(this).apply {
-            notify(notificationId, notification)
-            notify(groupId, notificationSummary)
+        if (firstGroupNotification == "true") {
+            //notification object
+            val notification = NotificationCompat.Builder(this, channelId)
+                .setContentText(description)
+                .setContentTitle(title)
+                .setColor(ContextCompat.getColor(this, android.R.color.holo_blue_bright))
+                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setContentIntent(pendingIntentSimpleNotification)
+                .setAutoCancel(true)
+                .setGroup(groupName)
+                .build()
+            //notification summary object. This code is what creates the notification summary/grouping ( think of X + summary for each group_id)
+            val notificationSummary = NotificationCompat.Builder(this, channelId)
+                .setStyle(NotificationCompat.InboxStyle())
+                .setColor(ContextCompat.getColor(this, android.R.color.holo_blue_bright))
+                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setContentIntent(pendingIntentSummaryNotification)
+                .setGroup(groupName)
+                .setAutoCancel(true)
+                .setGroupSummary(true)
+                .build()
+            NotificationManagerCompat.from(this).apply {
+                notify(notificationId, notification)
+                notify(groupId, notificationSummary)
+            }
+        } else {
+            //notification object
+            val notification = NotificationCompat.Builder(this, channelId)
+                .setContentText(description)
+                .setContentTitle(title)
+                .setColor(ContextCompat.getColor(this, android.R.color.holo_blue_bright))
+                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setContentIntent(pendingIntentSimpleNotification)
+                .setAutoCancel(true)
+                .setGroup(groupName)
+                .build()
+            NotificationManagerCompat.from(this).notify(notificationId, notification)
         }
         // this is how we cancel notification summary ( group ) notification
         // NotificationManagerCompat.from(this).cancel(groupId)
