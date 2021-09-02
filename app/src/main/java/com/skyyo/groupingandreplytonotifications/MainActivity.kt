@@ -2,12 +2,13 @@ package com.skyyo.groupingandreplytonotifications
 
 import android.annotation.SuppressLint
 import android.app.Notification
-import android.app.Notification.Builder.recoverBuilder
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
@@ -91,7 +92,7 @@ class MainActivity : AppCompatActivity() {
 //        NotificationManagerCompat.from(this).notify(0, notificationBuilder.build())
 
 
-        //approach with revocering -> userId+notificationId
+        //approach with recovering -> userId+notificationId API 28
         if (notificationId == 0) {
             createInitialNotification()
         } else {
@@ -150,7 +151,8 @@ class MainActivity : AppCompatActivity() {
         } ?: return //TODO check!
         val notification = statusBarNotification.notification
         // Add new `Message` to original `Notification.Builder`
-        val recoveredNotificationBuilder = recoverBuilder(this, notification)
+//     val n = getActiveNotification
+        val recoveredNotificationBuilder = Notification.Builder.recoverBuilder(this, notification)
         recoveredNotificationBuilder.also {
             val recoveredStyle = it.style as Notification.MessagingStyle
             recoveredStyle.addMessage(
@@ -164,6 +166,18 @@ class MainActivity : AppCompatActivity() {
         NotificationManagerCompat.from(this).notify(0, recoveredNotificationBuilder.build())
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    fun getActiveNotification(notificationId: Int): Notification? {
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val barNotifications = notificationManager.activeNotifications
+        for (notification in barNotifications) {
+            if (notification.id == notificationId) {
+                return notification.notification
+            }
+        }
+        return null
+    }
+
     private fun createNotificationChannel() {
         val channel = NotificationChannelCompat.Builder(
             CHANNEL_ID,
@@ -175,7 +189,12 @@ class MainActivity : AppCompatActivity() {
     private fun createOnDismissedIntent(notificationId: Int): PendingIntent? {
         val intent = Intent(this, MessageDismissedReceiver::class.java)
         intent.putExtra("com.skyyo.groupingandreplytonotifications", notificationId)
-        return PendingIntent.getBroadcast(this.applicationContext, notificationId, intent, PendingIntent.FLAG_IMMUTABLE)
+        return PendingIntent.getBroadcast(
+            this.applicationContext,
+            notificationId,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
 }

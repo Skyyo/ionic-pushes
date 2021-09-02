@@ -21,8 +21,7 @@
         </activity>
         <receiver
             android:name=".MessageDismissedReceiver"
-            android:exported="false" >
-        </receiver>
+            android:exported="false" />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
