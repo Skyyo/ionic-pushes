@@ -1,6 +1,5 @@
 package com.skyyo.groupingandreplytonotifications
 
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Intent
 import androidx.core.app.NotificationChannelCompat
@@ -69,7 +68,7 @@ class FcmService : FirebaseMessagingService() {
             activeNotifications[userId] = messagingStyle
         }
         val message = NotificationCompat.MessagingStyle.Message(
-            userMessage,
+            userMessage, // actual message
             System.currentTimeMillis(),
             person
         )
