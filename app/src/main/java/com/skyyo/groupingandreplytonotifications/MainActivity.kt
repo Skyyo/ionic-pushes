@@ -31,17 +31,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //this part is view related, doesn't matter
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        //we subscribe to the topic here, for testing purposes. You won't need this also
-        FirebaseMessaging.getInstance().subscribeToTopic("testTopic")
-
         lifecycleScope.launch {
             for (notification in NotificationEventDispatcher.emitter) {
-                Log.d("vovk", "event in activity")
-                //TODO invoke ionic callback
-                val activeChatId: Int? = 99
+                val activeChatId: Int? = 99   //TODO invoke ionic callback
                 if (notification.chatId == activeChatId) {
                     //TODO display notification
                 }
