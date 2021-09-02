@@ -10,6 +10,9 @@ import androidx.core.app.Person
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
+
+var isAppPaused = true
+
 class FcmService : FirebaseMessagingService() {
 
     //notification channel creation ( required since Android 8 #Oreo)
@@ -33,14 +36,25 @@ class FcmService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val title = remoteMessage.data["title"] ?: return
         val userId = remoteMessage.data["userId"]?.toInt() ?: return
+        val chatId = remoteMessage.data["chatId"]?.toInt() ?: return
         val userName = remoteMessage.data["userName"] ?: return
         val userMessage = remoteMessage.data["userMessage"] ?: return
         val groupName = remoteMessage.data["groupName"] ?: return
-        showNotification(title, userId, userName, userMessage, groupName)
+
+
+        //We are in background or app is terminated, so we want to show notification
+        if (isAppPaused) {
+            showNotification(title, chatId, userId, userName, userMessage, groupName)
+        } else {
+            //we are asking MainActivity to be responsible for dropping or showing notification
+            val notification = NotificationModel(userId, userName, chatId)
+            NotificationEventDispatcher.emit(notification)
+        }
     }
 
     private fun showNotification(
         title: String,
+        chatId: Int,
         userId: Int,
         userName: String,
         userMessage: String,
@@ -49,23 +63,16 @@ class FcmService : FirebaseMessagingService() {
         val person: Person = Person.Builder().apply {
             setKey("$userId")
             setName(userName)
-            //We can use URL as well
-//            setIcon(
-//                IconCompat.createWithResource(
-//                    this@FcmService,
-//                    android.R.drawable.ic_lock_power_off
-//                )
-//            )
         }.build()
         val messagingStyle: NotificationCompat.MessagingStyle
 
-        if (activeNotifications.containsKey(userId)) {
+        if (activeNotifications.containsKey(chatId)) {
             //style object exists, we just need to update it
-            messagingStyle = activeNotifications.getValue(userId)
+            messagingStyle = activeNotifications.getValue(chatId)
         } else {
             // we need to create new style object store & display it
             messagingStyle = NotificationCompat.MessagingStyle(person).setGroupConversation(true)
-            activeNotifications[userId] = messagingStyle
+            activeNotifications[chatId] = messagingStyle
         }
         val message = NotificationCompat.MessagingStyle.Message(
             userMessage, // actual message
@@ -79,7 +86,7 @@ class FcmService : FirebaseMessagingService() {
         val contentIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra("type", "simpleNotification")
-            putExtra("notificationId", "$userId")
+            putExtra("notificationId", "$chatId")
         }
         val pendingContentIntent = PendingIntent.getActivity(
             this,
@@ -91,21 +98,21 @@ class FcmService : FirebaseMessagingService() {
             .setSmallIcon(android.R.drawable.ic_lock_idle_charging)
             .setGroup(group)
             .setContentIntent(pendingContentIntent)
-            .setDeleteIntent(createOnDismissedIntent(userId))
+            .setDeleteIntent(createOnDismissedIntent(chatId))
             .setStyle(messagingStyle)
             .setAutoCancel(true)
             .setContentTitle(title)
 
-        NotificationManagerCompat.from(this).notify(userId, notificationBuilder.build())
+        NotificationManagerCompat.from(this).notify(chatId, notificationBuilder.build())
     }
 
-    private fun createOnDismissedIntent(userId: Int): PendingIntent? {
+    private fun createOnDismissedIntent(chatId: Int): PendingIntent? {
         val intent = Intent(this, MessageDismissedReceiver::class.java).apply {
-            putExtra("userId", userId)
+            putExtra("chatId", chatId)
         }
         return PendingIntent.getBroadcast(
             applicationContext,
-            userId,
+            chatId,
             intent,
             0
         )

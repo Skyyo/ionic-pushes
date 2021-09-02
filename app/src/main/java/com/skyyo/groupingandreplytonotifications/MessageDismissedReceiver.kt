@@ -9,7 +9,7 @@ class MessageDismissedReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context != null && intent?.extras != null) {
-            val userId = intent.getIntExtra("userId", -99)
+            val userId = intent.getIntExtra("chatId", -99)
             ActiveNotificationsHandler.activeNotifications.remove(userId)
         }
 

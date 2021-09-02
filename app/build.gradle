@@ -50,6 +50,10 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:28.0.1')
     implementation 'com.google.firebase:firebase-messaging-ktx'
 
+    // this is needed for dispatching events between MainActivity & Firebase service
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha02'
+
 
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
