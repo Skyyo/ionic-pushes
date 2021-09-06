@@ -11,66 +11,77 @@ import androidx.appcompat.app.AppCompatActivity
 class MainActivity : AppCompatActivity() {
 
 
-    //    csv, doc, docx, pdf, ppt, pptx, rtf, txt, xls and xlsx,
-//    MP4, mov, wmv, flv, Avi, hevc,
-//    Mp3
-//    Jpeg, jpg, PNG, gif, tiff, raw, heic, heif, mpeg, bmp, webp
+    // tested "types"
+    // txt, csv, xlsx, xls, odp, odt, ods, pdf, doc, docx, rtf, ppt
+    // zip
+    // jpg, svg, jpeg, webp, png, gif, tiff
+    // mp4, mkv, wmw, avi,
+    // ogg, mp3, wav,
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
-        when {
-            //single URI
-            intent?.action == Intent.ACTION_SEND -> {
+        when (intent?.action) {
+            Intent.ACTION_SEND -> {
+                val uri = intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri
                 when {
-                    "text/plain" == intent.type -> {
-                        Log.d("vovk", "text")
-                        handleSendText(intent)
+                    intent.type == "text/rtf" -> {
+                        Log.d("vovk", "rtf")
+                    }
+                    intent.type?.startsWith("text/plain") == true -> {
+                        Log.d("vovk", "txt")
+                    }
+                    intent.type?.startsWith("text/comma-separated-values") == true -> {
+                        Log.d("vovk", "csv")
                     }
                     intent.type?.startsWith("image/") == true -> {
-                        val uri = intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri
-
-                        Log.d("vovk", "name ${uri!!.lastPathSegment}")
-                        Log.d("vovk", "name2 ${uri.encodedPath}")
-
-                        Log.d("vovk", "send image intent")
-                        handleSendImage(intent)
+                        Log.d("vovk", "image")
                     }
                     intent.type?.startsWith("application/pdf") == true -> {
                         Log.d("vovk", "pdf")
-                        val uri = intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri
-
-                        Log.d("vovk", "name ${uri!!.lastPathSegment}")
-                        Log.d("vovk", "name2 ${uri.encodedPath}")
+                    }
+                    intent.type?.startsWith("application/zip") == true -> {
+                        Log.d("vovk", "zip")
+                    }
+                    intent.type?.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") == true -> {
+                        Log.d("vovk", "docx")
+                    }
+                    intent.type?.startsWith("application/vnd.ms-powerpoint") == true -> {
+                        Log.d("vovk", "ppt")
+                    }
+                    intent.type?.startsWith("application/msword") == true -> {
+                        Log.d("vovk", "doc")
+                    }
+                    intent.type?.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") == true -> {
+                        Log.d("vovk", "xlsx")
+                    }
+                    intent.type?.startsWith("application/vnd.ms-excel") == true -> {
+                        Log.d("vovk", "xls")
+                    }
+                    intent.type?.startsWith("application/vnd.oasis.opendocument.presentation") == true -> {
+                        Log.d("vovk", "odp")
+                    }
+                    intent.type?.startsWith("application/vnd.oasis.opendocument.spreadsheet") == true -> {
+                        Log.d("vovk", "ods")
+                    }
+                    intent.type?.startsWith("application/vnd.oasis.opendocument.text") == true -> {
+                        Log.d("vovk", "odt")
+                    }
+                    intent.type?.startsWith("audio/") == true -> {
+                        Log.d("vovk", "audio")
+                    }
+                    intent.type?.startsWith("video/") == true -> {
+                        Log.d("vovk", "video")
+                    }
+                    intent.type != null -> {
+                        Log.d("vovk", "${intent.type}")
                     }
                 }
             }
-            intent?.action == Intent.ACTION_SEND_MULTIPLE && intent.type?.startsWith("image/") == true -> {
-                Log.d("vovk", "ACTION_SEND_MULTIPLE image")
-                handleSendMultipleImages(intent) // Handle multiple images being sent
+            Intent.ACTION_SEND_MULTIPLE -> {
+                val uris = intent.getParcelableArrayListExtra<Parcelable>(Intent.EXTRA_STREAM)
+                Log.d("vovk", "ACTION_SEND_MULTIPLE image $uris")
             }
-            else -> {
-                Log.d("vovk", "else")
-                // Handle other intents, such as being started from the home screen
-            }
-        }
-    }
-
-    private fun handleSendText(intent: Intent) {
-        intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
-            // Update UI to reflect text being shared
-        }
-    }
-
-    private fun handleSendImage(intent: Intent) {
-        (intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let {
-            // Update UI to reflect image being shared
-        }
-    }
-
-    private fun handleSendMultipleImages(intent: Intent) {
-        intent.getParcelableArrayListExtra<Parcelable>(Intent.EXTRA_STREAM)?.let {
-            // Update UI to reflect multiple images being shared
         }
     }
 }
