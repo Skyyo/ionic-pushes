@@ -7,8 +7,15 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH
 import androidx.core.app.Person
+import androidx.core.graphics.drawable.IconCompat
+import androidx.core.graphics.drawable.toBitmap
+import coil.imageLoader
+import coil.request.ImageRequest
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class FcmService : FirebaseMessagingService() {
 
@@ -36,27 +43,31 @@ class FcmService : FirebaseMessagingService() {
         val userName = remoteMessage.data["userName"] ?: return
         val userMessage = remoteMessage.data["userMessage"] ?: return
         val groupName = remoteMessage.data["groupName"] ?: return
-        showNotification(title, userId, userName, userMessage, groupName)
+        val userPicture =
+            "https://newsroom.unsw.edu.au/sites/default/files/thumbnails/image/3500028168_c85a03256a_b_2.jpg"
+        CoroutineScope(Dispatchers.IO).launch {
+            showNotification(title, userId, userName, userMessage, groupName, userPicture)
+        }
     }
 
-    private fun showNotification(
+    private suspend fun showNotification(
         title: String,
         userId: Int,
         userName: String,
         userMessage: String,
         group: String,
+        userPicture: String
     ) {
+        val request = ImageRequest.Builder(this)
+            .data(userPicture)
+            .build()
+        val drawable = imageLoader.execute(request).drawable?.toBitmap(256, 256)
         val person: Person = Person.Builder().apply {
             setKey("$userId")
             setName(userName)
-            //We can use URL as well
-//            setIcon(
-//                IconCompat.createWithResource(
-//                    this@FcmService,
-//                    android.R.drawable.ic_lock_power_off
-//                )
-//            )
+            setIcon(IconCompat.createWithBitmap(drawable))
         }.build()
+
         val messagingStyle: NotificationCompat.MessagingStyle
 
         if (activeNotifications.containsKey(userId)) {
